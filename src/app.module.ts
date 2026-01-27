@@ -1,28 +1,51 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getDatabaseConfig } from './config/database.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TeachersModule } from './teachers/teachers.module';
 
+
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'Postgres2025!',
-      database: 'sistema_academico',
-      autoLoadEntities: true,
-      synchronize: true,
+    // ✅ Configuración de variables de entorno (.env)
+    // isGlobal: true hace que esté disponible en toda la app
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
     }),
+
+    // ✅ Configuración de TypeORM usando variables de entorno
+    // Lee las credenciales del archivo .env
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        getDatabaseConfig(configService),
+    }),
+
+    // Módulos de la aplicación
     AuthModule,
     UsersModule,
     TeachersModule,
+    // TODO: Agregar más módulos según se vayan creando:
+    // StudentsModule,
+    // ProgramsModule,
+    // SubjectsModule,
+    // PeriodsModule,
+    // GroupsModule,
+    // AssignmentsModule,
+    // GradesModule,
+    // AttendanceModule,
+    // FinanceModule,
+    // PreEnrollmentModule,
+    // NotificationsModule,
+    // AuditModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController], // Mantener si los tienes
+  providers: [AppService], // Mantener si los tienes
 })
 export class AppModule {}
