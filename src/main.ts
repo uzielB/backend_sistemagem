@@ -3,6 +3,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
+/**
+ * Función de arranque de la aplicación
+ * Sistema Académico GEM
+ */
 async function bootstrap() {
   // Crear la aplicación NestJS
   const app = await NestFactory.create(AppModule);
@@ -82,3 +86,5 @@ async function bootstrap() {
   console.log('================================================');
   console.log('');
 }
+
+bootstrap();
