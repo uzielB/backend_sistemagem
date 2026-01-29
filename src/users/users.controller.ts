@@ -1,18 +1,20 @@
-import {Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from '../common/enums/role.enum';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 /**
  * Controlador de Usuarios
- * Maneja todas las peticiones HTTP relacionadas con usuarios
+ * Rutas protegidas con autenticación JWT y control de roles
  * 
  * Rutas base: /api/users
-
  */
 @Controller('users')
-// @UseGuards(JwtAuthGuard) // Activar cuando tengamos el módulo de Auth
+@UseGuards(JwtAuthGuard, RolesGuard) // ✅ Proteger todas las rutas
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -21,12 +23,9 @@ export class UsersController {
    * Crea un nuevo usuario
    * 
    * Requiere rol: SUPER_ADMIN o ADMIN
-   * 
-   * @param createUserDto - Datos del usuario a crear
-   * @returns Usuario creado
    */
   @Post()
-  // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN) // Activar con guards
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
@@ -40,15 +39,11 @@ export class UsersController {
   /**
    * GET /api/users
    * Obtiene todos los usuarios
-   * Opcionalmente filtra por rol usando query param: ?role=DOCENTE
    * 
    * Requiere rol: SUPER_ADMIN o ADMIN
-   * 
-   * @param role - Rol para filtrar (opcional)
-   * @returns Lista de usuarios
    */
   @Get()
-  // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async findAll(@Query('role') role?: UserRole) {
     const users = await this.usersService.findAll(role);
 
@@ -64,11 +59,9 @@ export class UsersController {
    * Obtiene estadísticas de usuarios
    * 
    * Requiere rol: SUPER_ADMIN o ADMIN
-   * 
-   * @returns Estadísticas de usuarios
    */
   @Get('statistics')
-  // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async getStatistics() {
     const statistics = await this.usersService.getStatistics();
 
@@ -83,12 +76,9 @@ export class UsersController {
    * Busca un usuario por su CURP
    * 
    * Requiere rol: SUPER_ADMIN o ADMIN
-   * 
-   * @param curp - CURP del usuario
-   * @returns Usuario encontrado
    */
   @Get('curp/:curp')
-  // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async findByCurp(@Param('curp') curp: string) {
     const user = await this.usersService.findByCurp(curp);
 
@@ -102,10 +92,7 @@ export class UsersController {
    * GET /api/users/:id
    * Obtiene un usuario por su ID
    * 
-   * Requiere autenticación
-   * 
-   * @param id - ID del usuario
-   * @returns Usuario encontrado
+   * Requiere autenticación (cualquier rol autenticado)
    */
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -122,13 +109,9 @@ export class UsersController {
    * Actualiza los datos de un usuario
    * 
    * Requiere rol: SUPER_ADMIN o ADMIN
-   * 
-   * @param id - ID del usuario a actualizar
-   * @param updateUserDto - Datos a actualizar
-   * @returns Usuario actualizado
    */
   @Patch(':id')
-  // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -145,13 +128,10 @@ export class UsersController {
    * PATCH /api/users/:id/change-password
    * Cambia la contraseña de un usuario
    * 
-   * Requiere rol: SUPER_ADMIN o el mismo usuario
-   * 
-   * @param id - ID del usuario
-   * @param body - Objeto con la nueva contraseña
-   * @returns Confirmación del cambio
+   * Requiere rol: SUPER_ADMIN
    */
   @Patch(':id/change-password')
+  @Roles(UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Param('id', ParseIntPipe) id: number,
@@ -173,12 +153,9 @@ export class UsersController {
    * Desactiva un usuario (baja lógica)
    * 
    * Requiere rol: SUPER_ADMIN
-   * 
-   * @param id - ID del usuario a desactivar
-   * @returns Usuario desactivado
    */
   @Patch(':id/deactivate')
-  // @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   async deactivate(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.deactivate(id);
 
@@ -193,12 +170,9 @@ export class UsersController {
    * Reactiva un usuario previamente desactivado
    * 
    * Requiere rol: SUPER_ADMIN
-   * 
-   * @param id - ID del usuario a reactivar
-   * @returns Usuario reactivado
    */
   @Patch(':id/activate')
-  // @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   async activate(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.activate(id);
 
@@ -213,13 +187,9 @@ export class UsersController {
    * Elimina permanentemente un usuario (baja física)
    * 
    * Requiere rol: SUPER_ADMIN
-   * PRECAUCIÓN: Esta operación no se puede deshacer
-   * 
-   * @param id - ID del usuario a eliminar
-   * @returns Confirmación de eliminación
    */
   @Delete(':id')
-  // @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id', ParseIntPipe) id: number) {
     await this.usersService.remove(id);

@@ -2,7 +2,7 @@ import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request, 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-// import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 /**
  * Controlador de Autenticación
@@ -14,13 +14,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /**
-   * POST /api/auth/login
-   * Inicio de sesión
-   * 
-   * @param loginDto - Credenciales (CURP y contraseña)
-   * @returns Token JWT y datos del usuario
-   */
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
@@ -32,17 +25,9 @@ export class AuthController {
     };
   }
 
-  /**
-   * GET /api/auth/profile
-   * Obtiene el perfil del usuario autenticado
-   * 
-   * Requiere autenticación (token JWT válido)
-   * 
-   * @param req - Request con el usuario autenticado
-   * @returns Datos del usuario
-   */
+
   @Get('profile')
-  // @UseGuards(JwtAuthGuard) // Activar cuando tengamos el guard
+  @UseGuards(JwtAuthGuard) // ✅ ACTIVADO
   async getProfile(@Request() req) {
     // El usuario viene de JwtStrategy después de validar el token
     const user = await this.authService.getProfile(req.user.id);
@@ -53,18 +38,8 @@ export class AuthController {
     };
   }
 
-  /**
-   * PATCH /api/auth/change-password
-   * Cambia la contraseña del usuario autenticado
-   * 
-   * Requiere autenticación (token JWT válido)
-   * 
-   * @param req - Request con el usuario autenticado
-   * @param changePasswordDto - Contraseñas actual y nueva
-   * @returns Confirmación del cambio
-   */
   @Patch('change-password')
-  // @UseGuards(JwtAuthGuard) // Activar cuando tengamos el guard
+  @UseGuards(JwtAuthGuard) 
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Request() req,
@@ -77,15 +52,7 @@ export class AuthController {
     };
   }
 
-  /**
-   * POST /api/auth/verify-token
-   * Verifica si un token JWT es válido
-   * 
-   * Útil para el frontend para verificar si el usuario sigue autenticado
-   * 
-   * @param body - Objeto con el token a verificar
-   * @returns Información del token si es válido
-   */
+ 
   @Post('verify-token')
   @HttpCode(HttpStatus.OK)
   async verifyToken(@Body() body: { token: string }) {
@@ -101,15 +68,17 @@ export class AuthController {
    * POST /api/auth/logout
    * Cierre de sesión
    * 
-   * Nota: En JWT stateless, el logout se maneja en el cliente eliminando el token.
-   * Este endpoint puede usarse para logging o invalidación futura.
-   * 
-   * @returns Confirmación de logout
+   * Requiere autenticación (token JWT válido)
    */
   @Post('logout')
-  // @UseGuards(JwtAuthGuard) // Activar cuando tengamos el guard
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout() {
+    // En JWT stateless, el logout se maneja en el cliente
+    // Aquí podríamos agregar lógica adicional como:
+    // - Registrar en logs de auditoría
+    // - Blacklist del token (requiere Redis/cache)
+    // - Notificaciones
 
     return {
       message: 'Sesión cerrada exitosamente',
