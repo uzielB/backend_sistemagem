@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { ProgramsModule } from './programs/programs.module';
 import { ScheduleModulesModule } from './schedule-modules/schedule-modules.module';
+import { SchoolPeriodsModule } from './school-periods/school-periods.module';
 
 @Module({
   imports: [
@@ -33,10 +34,10 @@ import { ScheduleModulesModule } from './schedule-modules/schedule-modules.modul
     UsersModule,
     TeachersModule,
     ProgramsModule,
-    ScheduleModulesModule
+    ScheduleModulesModule,
+    SchoolPeriodsModule,
     // TODO: Agregar más módulos según se vayan creando:
     // StudentsModule,
-    // ProgramsModule,
     // SubjectsModule,
     // PeriodsModule,
     // GroupsModule,
