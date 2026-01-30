@@ -10,6 +10,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { ProgramsModule } from './programs/programs.module';
 import { ScheduleModulesModule } from './schedule-modules/schedule-modules.module';
 import { SchoolPeriodsModule } from './school-periods/school-periods.module';
+import { TeacherAvailabilityModule } from './teacher-availability/teacher-availability.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SchoolPeriodsModule } from './school-periods/school-periods.module';
     ProgramsModule,
     ScheduleModulesModule,
     SchoolPeriodsModule,
+    TeacherAvailabilityModule,
     // TODO: Agregar más módulos según se vayan creando:
     // StudentsModule,
     // SubjectsModule,
