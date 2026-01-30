@@ -6,7 +6,7 @@ import { CreateUserDto } from '../../users/dto/create-user.dto';
 
 /**
  * Seeder de Usuarios Iniciales
- * Crea los 4 usuarios de prueba del sistema
+ * Crea 6 usuarios de prueba del sistema (1 SuperAdmin, 1 Admin, 3 Docentes, 1 Alumno)
  * 
  * Para ejecutar:
  * npm run build
@@ -27,6 +27,7 @@ async function seedUsers() {
 
   // Usuarios iniciales según el diseño de BD
   const initialUsers: CreateUserDto[] = [
+    // SUPER ADMINISTRADOR
     {
       curp: 'SUPE800101HDFXXX01',
       contrasena: 'super1234',
@@ -39,6 +40,8 @@ async function seedUsers() {
       estaActivo: true,
       debeCambiarContrasena: true,
     },
+
+    // ADMINISTRADOR
     {
       curp: 'ADMI850101HDFXXX02',
       contrasena: 'admin1234',
@@ -51,27 +54,59 @@ async function seedUsers() {
       estaActivo: true,
       debeCambiarContrasena: true,
     },
+
+    // DOCENTE 1
     {
       curp: 'DOCE900101HDFXXX03',
       contrasena: 'docente1234',
-      correo: 'docente@gem.edu.mx',
+      correo: 'docente1@gem.edu.mx',
       rol: UserRole.DOCENTE,
-      nombre: 'Profesor',
-      apellidoPaterno: 'Ejemplo',
-      apellidoMaterno: 'Demo',
+      nombre: 'María',
+      apellidoPaterno: 'González',
+      apellidoMaterno: 'López',
       telefono: '951-000-0003',
       estaActivo: true,
       debeCambiarContrasena: true,
     },
+
+    // DOCENTE 2 ✅ NUEVO
     {
-      curp: 'ALUM050101HDFXXX04',
+      curp: 'DOCE910101HDFXXX04',
+      contrasena: 'docente2234',
+      correo: 'docente2@gem.edu.mx',
+      rol: UserRole.DOCENTE,
+      nombre: 'Carlos',
+      apellidoPaterno: 'Ramírez',
+      apellidoMaterno: 'Santos',
+      telefono: '951-000-0004',
+      estaActivo: true,
+      debeCambiarContrasena: true,
+    },
+
+    // DOCENTE 3 ✅ NUEVO
+    {
+      curp: 'DOCE920101HDFXXX05',
+      contrasena: 'docente3234',
+      correo: 'docente3@gem.edu.mx',
+      rol: UserRole.DOCENTE,
+      nombre: 'Ana',
+      apellidoPaterno: 'Martínez',
+      apellidoMaterno: 'Ruiz',
+      telefono: '951-000-0005',
+      estaActivo: true,
+      debeCambiarContrasena: true,
+    },
+
+    // ALUMNO
+    {
+      curp: 'ALUM050101HDFXXX06',
       contrasena: 'alumno1234',
       correo: 'alumno@gem.edu.mx',
       rol: UserRole.ALUMNO,
       nombre: 'Estudiante',
       apellidoPaterno: 'Ejemplo',
       apellidoMaterno: 'Demo',
-      telefono: '951-000-0004',
+      telefono: '951-000-0006',
       estaActivo: true,
       debeCambiarContrasena: true,
     },
@@ -123,12 +158,20 @@ async function seedUsers() {
   console.log('   CURP: ADMI850101HDFXXX02');
   console.log('   Contraseña: admin1234');
   console.log('');
-  console.log('   DOCENTE:');
+  console.log('   DOCENTE 1:');
   console.log('   CURP: DOCE900101HDFXXX03');
   console.log('   Contraseña: docente1234');
   console.log('');
+  console.log('   DOCENTE 2:');
+  console.log('   CURP: DOCE910101HDFXXX04');
+  console.log('   Contraseña: docente2234');
+  console.log('');
+  console.log('   DOCENTE 3:');
+  console.log('   CURP: DOCE920101HDFXXX05');
+  console.log('   Contraseña: docente3234');
+  console.log('');
   console.log('   ALUMNO:');
-  console.log('   CURP: ALUM050101HDFXXX04');
+  console.log('   CURP: ALUM050101HDFXXX06');
   console.log('   Contraseña: alumno1234');
   console.log('');
   console.log('================================================');
