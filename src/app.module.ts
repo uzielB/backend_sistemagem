@@ -7,6 +7,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TeachersModule } from './teachers/teachers.module';
+import { ProgramsModule } from './programs/programs.module';
+import { ScheduleModulesModule } from './schedule-modules/schedule-modules.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { TeachersModule } from './teachers/teachers.module';
     AuthModule,
     UsersModule,
     TeachersModule,
+    ProgramsModule,
+    ScheduleModulesModule
     // TODO: Agregar más módulos según se vayan creando:
     // StudentsModule,
     // ProgramsModule,
