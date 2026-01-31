@@ -11,7 +11,8 @@ import { ProgramsModule } from './programs/programs.module';
 import { ScheduleModulesModule } from './schedule-modules/schedule-modules.module';
 import { SchoolPeriodsModule } from './school-periods/school-periods.module';
 import { TeacherAvailabilityModule } from './teacher-availability/teacher-availability.module';
-
+import { TeacherBankInfoModule } from './teacher-bank-info/teacher-bank-info.module';
+import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.module';
 @Module({
   imports: [
     // ✅ Configuración de variables de entorno (.env)
@@ -38,6 +39,8 @@ import { TeacherAvailabilityModule } from './teacher-availability/teacher-availa
     ScheduleModulesModule,
     SchoolPeriodsModule,
     TeacherAvailabilityModule,
+    TeacherBankInfoModule,
+    TeacherDocumentsModule,
     // TODO: Agregar más módulos según se vayan creando:
     // StudentsModule,
     // SubjectsModule,
