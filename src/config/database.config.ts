@@ -18,26 +18,24 @@ export const getDatabaseConfig = (
   host: configService.get<string>('DB_HOST', 'localhost'),
   port: configService.get<number>('DB_PORT', 5432),
   username: configService.get<string>('DB_USERNAME', 'postgres'),
-  password: configService.get<string>('DB_PASSWORD'),
+  password: configService.get<string>('DB_PASSWORD', 'Postgres2025!'),
   database: configService.get<string>('DB_DATABASE', 'sistema_academico'),
 
-  // Carga automática de entidades
-  // Busca todos los archivos *.entity.ts automáticamente
-  autoLoadEntities: true,
+  // ✅ CAMBIO: Usar entities en lugar de autoLoadEntities
+  // autoLoadEntities no funciona con forRootAsync
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
 
   // Sincronización automática del esquema
-  // ⚠️ SOLO para desarrollo - deshabilitar en producción
-  // Crea/actualiza tablas automáticamente según las entidades
-  synchronize: configService.get<string>('NODE_ENV') === 'development',
+  // ✅ SIMPLIFICADO: Para desarrollo siempre true
+  synchronize: true,
 
-  // Logging de queries SQL (útil para debugging)
-  // Muestra las queries en la consola
-  logging: configService.get<string>('NODE_ENV') === 'development',
+  // Logging de queries SQL
+  logging: true,
 
   // Configuración del pool de conexiones
   extra: {
-    max: 20, // Máximo de conexiones simultáneas
-    connectionTimeoutMillis: 30000, // Timeout de conexión: 30 segundos
+    max: 20,
+    connectionTimeoutMillis: 30000,
   },
 
   // Opciones de migraciones (para producción)

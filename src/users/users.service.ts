@@ -317,6 +317,7 @@ export class UsersService {
         [UserRole.ADMIN]: 0,
         [UserRole.DOCENTE]: 0,
         [UserRole.ALUMNO]: 0,
+        [UserRole.GUEST]: 0,
       },
       active: 0,
       inactive: 0,

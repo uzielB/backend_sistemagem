@@ -9,6 +9,8 @@
  * - ALUMNO: Estudiantes con acceso de consulta
  */
 export enum UserRole {
+  
+  GUEST = 'GUEST',
   /**
    * Super Administrador (Admin Master)
    * Privilegios: CRUD completo de todos los usuarios, validación de becas,
