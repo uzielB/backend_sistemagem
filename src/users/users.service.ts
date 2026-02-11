@@ -1,4 +1,4 @@
-import {Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -85,6 +85,46 @@ export class UsersService {
   }
 
   /**
+ * Buscar usuarios por rol
+ * @param rol - Rol a buscar (ALUMNO, DOCENTE, ADMIN, SUPER_ADMIN)
+ * @param soloActivos - Si es true, solo devuelve usuarios activos
+ * @returns Lista de usuarios que cumplen con el rol especificado
+ */
+async findByRole(rol: UserRole, soloActivos: boolean = true): Promise<User[]> {
+  console.log(`📋 UsersService.findByRole()`);
+  console.log(`Rol: ${rol}`);
+  console.log(`Solo activos: ${soloActivos}`);
+
+  const query = this.userRepository.createQueryBuilder('user')
+    .where('user.rol = :rol', { rol });
+
+  if (soloActivos) {
+    query.andWhere('user.esta_activo = :activo', { activo: true });
+  }
+
+  query
+    .select([
+      'user.id',
+      'user.curp',
+      'user.nombre',
+      'user.apellido_paterno',
+      'user.apellido_materno',
+      'user.correo',
+      'user.telefono',
+      'user.rol',
+      'user.esta_activo'
+    ])
+    .orderBy('user.nombre', 'ASC')
+    .addOrderBy('user.apellido_paterno', 'ASC');
+
+  const usuarios = await query.getMany();
+  
+  console.log(`✅ Usuarios encontrados: ${usuarios.length}`);
+
+  return usuarios;
+}
+
+  /**
    * Obtiene un usuario por su ID
    * 
    * @param id - ID del usuario
@@ -108,24 +148,45 @@ export class UsersService {
    * Busca un usuario por su CURP
    * Usado principalmente para autenticación
    * 
+   * ✅ CORREGIDO: Usa QueryBuilder para incluir contraseña correctamente
+   * 
    * @param curp - CURP del usuario
    * @param includePassword - Si debe incluir la contraseña (para autenticación)
    * @returns Usuario encontrado
    * @throws NotFoundException si no existe el usuario
    */
   async findByCurp(curp: string, includePassword = false): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { curp },
-    });
+    console.log('');
+    console.log('📍 UsersService.findByCurp()');
+    console.log('CURP buscado:', curp);
+    console.log('Incluir contraseña:', includePassword);
+
+    // ✅ CORRECCIÓN: Usar QueryBuilder para incluir contraseña
+    let query = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.curp = :curp', { curp: curp.toUpperCase() });
+
+    // Si se necesita la contraseña, agregarla explícitamente
+    if (includePassword) {
+      query = query.addSelect('user.contrasena');
+    }
+
+    const user = await query.getOne();
+
+    console.log('Usuario encontrado:', user ? 'SÍ' : 'NO');
+    if (user) {
+      console.log('Usuario ID:', user.id);
+      console.log('Contraseña incluida:', user.contrasena ? 'SÍ ✅' : 'NO ❌');
+      if (user.contrasena) {
+        console.log('Hash (primeros 30 caracteres):', user.contrasena.substring(0, 30) + '...');
+      }
+    }
+    console.log('');
 
     if (!user) {
       throw new NotFoundException(
         `No se encontró el usuario con CURP: ${curp}`,
       );
-    }
-
-    if (!includePassword) {
-      delete user.contrasena;
     }
 
     return user;

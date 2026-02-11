@@ -17,7 +17,7 @@ import { UpdatePagoDto } from './dto/update-pago.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from '../common/enums/role.enum';  // ✅ CORREGIDO: UserRole
+import { UserRole } from '../common/enums/role.enum';
 import { EstatusPago } from './entities/pago.entity';
 
 @Controller('finanzas')
@@ -43,7 +43,7 @@ export class FinanzasController {
   // ==========================================
 
   @Get('pagos')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async findAllPagos(
     @Query('estudiante_id') estudianteId?: number,
     @Query('estatus') estatus?: EstatusPago,
@@ -65,7 +65,7 @@ export class FinanzasController {
   }
 
   @Get('pagos/:id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async findOnePago(@Param('id', ParseIntPipe) id: number) {
     const pago = await this.finanzasService.findOnePago(id);
     return {
@@ -75,9 +75,16 @@ export class FinanzasController {
   }
 
   @Post('pagos')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async createPago(@Body() createPagoDto: CreatePagoDto, @Request() req) {
+    console.log('📝 Creando pago...');
+    console.log('Usuario autenticado:', req.user);
+    console.log('Datos del pago:', createPagoDto);
+
     const pago = await this.finanzasService.createPago(createPagoDto, req.user.userId);
+    
+    console.log('✅ Pago creado exitosamente:', pago.id);
+
     return {
       success: true,
       data: pago,
@@ -86,7 +93,7 @@ export class FinanzasController {
   }
 
   @Put('pagos/:id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async updatePago(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePagoDto: UpdatePagoDto
@@ -100,7 +107,7 @@ export class FinanzasController {
   }
 
   @Delete('pagos/:id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async removePago(@Param('id', ParseIntPipe) id: number) {
     await this.finanzasService.removePago(id);
     return {
@@ -114,12 +121,18 @@ export class FinanzasController {
   // ==========================================
 
   @Get('mis-pagos')
-  @Roles(UserRole.ALUMNO)  // ✅ CORREGIDO
+  @Roles(UserRole.ALUMNO)
   async getMisPagos(@Request() req, @Query('estatus') estatus?: EstatusPago) {
-    // Obtener estudiante_id del usuario autenticado
-    const estudianteId = req.user.estudianteId;
+    // ✅ CORRECCIÓN: Usar userId en lugar de estudianteId
+    // El token JWT contiene userId, no estudianteId
+    const estudianteId = req.user.userId;
+    
+    console.log('🔍 Usuario autenticado:', req.user);
+    console.log('🔍 Buscando pagos del estudiante ID:', estudianteId);
     
     const pagos = await this.finanzasService.findPagosByEstudiante(estudianteId, estatus);
+    
+    console.log('📥 Pagos encontrados:', pagos.length);
     
     return {
       success: true,
@@ -133,7 +146,7 @@ export class FinanzasController {
   // ==========================================
 
   @Get('becas/estudiante/:estudianteId')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ALUMNO)  // ✅ CORREGIDO
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ALUMNO)
   async getBecaEstudiante(@Param('estudianteId', ParseIntPipe) estudianteId: number) {
     const beca = await this.finanzasService.findBecaActivaByEstudiante(estudianteId);
     return {

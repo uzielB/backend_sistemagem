@@ -55,6 +55,37 @@ export class UsersController {
   }
 
   /**
+   * GET /api/users/estudiantes
+   * Obtiene lista de estudiantes (alumnos) activos
+   * Usado por Admin para crear pagos, becas, etc.
+   * 
+   * ⚠️ IMPORTANTE: Este método DEBE estar ANTES de findOne(:id)
+   * para que /users/estudiantes no sea interpretado como /users/:id
+   * 
+   * Requiere rol: SUPER_ADMIN o ADMIN
+   */
+  @Get('estudiantes')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  async getEstudiantes(@Query('activos') activos?: string) {
+    const soloActivos = activos === 'true' || activos === undefined;
+    
+    console.log('📋 Obteniendo estudiantes, soloActivos:', soloActivos);
+    
+    const estudiantes = await this.usersService.findByRole(
+      UserRole.ALUMNO,
+      soloActivos
+    );
+
+    console.log('✅ Estudiantes encontrados:', estudiantes.length);
+
+    return {
+      success: true,
+      data: estudiantes,
+      total: estudiantes.length,
+    };
+  }
+
+  /**
    * GET /api/users/statistics
    * Obtiene estadísticas de usuarios
    * 

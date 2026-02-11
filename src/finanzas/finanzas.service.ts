@@ -42,7 +42,8 @@ export class FinanzasService {
     fecha_hasta?: string;
   }): Promise<Pago[]> {
     const query = this.pagoRepository.createQueryBuilder('pago')
-      .leftJoinAndSelect('pago.concepto', 'concepto');
+      .leftJoinAndSelect('pago.concepto', 'concepto')
+      .leftJoinAndSelect('pago.estudiante', 'estudiante'); // ✅ AGREGAR RELACIÓN ESTUDIANTE
 
     if (filters?.estudiante_id) {
       query.andWhere('pago.estudiante_id = :estudianteId', { estudianteId: filters.estudiante_id });
@@ -68,7 +69,7 @@ export class FinanzasService {
   async findOnePago(id: number): Promise<Pago> {
     const pago = await this.pagoRepository.findOne({
       where: { id },
-      relations: ['concepto']
+      relations: ['concepto', 'estudiante'] // ✅ AGREGAR RELACIÓN ESTUDIANTE
     });
 
     if (!pago) {
@@ -85,7 +86,10 @@ export class FinanzasService {
       estatus: createPagoDto.estatus || EstatusPago.PENDIENTE
     });
 
-    return await this.pagoRepository.save(pago);
+    const pagoGuardado = await this.pagoRepository.save(pago);
+
+    // Recargar el pago con sus relaciones para devolver datos completos
+    return await this.findOnePago(pagoGuardado.id);
   }
 
   async updatePago(id: number, updatePagoDto: UpdatePagoDto): Promise<Pago> {
@@ -93,7 +97,10 @@ export class FinanzasService {
     
     Object.assign(pago, updatePagoDto);
     
-    return await this.pagoRepository.save(pago);
+    await this.pagoRepository.save(pago);
+
+    // Recargar con relaciones actualizadas
+    return await this.findOnePago(id);
   }
 
   async removePago(id: number): Promise<void> {
@@ -106,8 +113,13 @@ export class FinanzasService {
   // ==========================================
 
   async findPagosByEstudiante(estudianteId: number, estatus?: EstatusPago): Promise<Pago[]> {
+    console.log('📋 FinanzasService.findPagosByEstudiante()');
+    console.log('Estudiante ID:', estudianteId);
+    console.log('Estatus filtro:', estatus || 'TODOS');
+
     const query = this.pagoRepository.createQueryBuilder('pago')
       .leftJoinAndSelect('pago.concepto', 'concepto')
+      .leftJoinAndSelect('pago.estudiante', 'estudiante') // ✅ AGREGAR RELACIÓN ESTUDIANTE
       .where('pago.estudiante_id = :estudianteId', { estudianteId });
 
     if (estatus) {
@@ -116,7 +128,11 @@ export class FinanzasService {
 
     query.orderBy('pago.fecha_vencimiento', 'DESC');
 
-    return await query.getMany();
+    const pagos = await query.getMany();
+
+    console.log('✅ Pagos encontrados:', pagos.length);
+
+    return pagos;
   }
 
   // ==========================================

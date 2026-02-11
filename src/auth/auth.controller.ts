@@ -17,13 +17,9 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const result = await this.authService.login(loginDto);
-
-    return {
-      message: 'Inicio de sesión exitoso',
-      data: result,
-    };
-  }
+  // ✅ BIEN: Devuelve directamente
+  return await this.authService.login(loginDto);
+}
 
 
   @Get('profile')

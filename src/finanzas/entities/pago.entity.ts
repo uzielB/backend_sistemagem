@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ConceptoPago } from './concepto-pago.entity';
+import { User } from '../../users/entities/user.entity'; // ✅ AGREGAR IMPORT
 
 export enum EstatusPago {
   PENDIENTE = 'PENDIENTE',
@@ -69,11 +70,22 @@ export class Pago {
   @UpdateDateColumn()
   fecha_actualizacion: Date;
 
-  // Relación con ConceptoPago (esta sí existe)
+  // ========================================
+  // RELACIONES
+  // ========================================
+
+  // Relación con ConceptoPago
   @ManyToOne(() => ConceptoPago, concepto => concepto.pagos, { eager: true })
   @JoinColumn({ name: 'concepto_id' })
   concepto: ConceptoPago;
 
-  // NOTA: Las relaciones con Estudiante y Usuario se agregarán después
-  // cuando esas entidades estén disponibles
+  // ✅ Relación con Usuario (Estudiante)
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'estudiante_id' })
+  estudiante: User;
+
+  // ✅ Relación con Usuario (quien creó el pago)
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'creado_por' })
+  creadoPor: User;
 }

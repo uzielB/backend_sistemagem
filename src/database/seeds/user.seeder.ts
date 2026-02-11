@@ -7,7 +7,7 @@ import { CreateUserDto } from '../../users/dto/create-user.dto';
 /**
  * Seeder de Usuarios Iniciales
  * Crea 6 usuarios de prueba del sistema (1 SuperAdmin, 1 Admin, 3 Docentes, 1 Alumno)
- * 
+ *
  * Para ejecutar:
  * npm run build
  * node dist/database/seeds/user.seeder.js
@@ -38,7 +38,7 @@ async function seedUsers() {
       apellidoMaterno: 'GEM',
       telefono: '951-000-0001',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
 
     // ADMINISTRADOR
@@ -52,7 +52,7 @@ async function seedUsers() {
       apellidoMaterno: 'GEM',
       telefono: '951-000-0002',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
 
     // DOCENTE 1
@@ -66,10 +66,10 @@ async function seedUsers() {
       apellidoMaterno: 'López',
       telefono: '951-000-0003',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
 
-    // DOCENTE 2 ✅ NUEVO
+    // DOCENTE 2
     {
       curp: 'DOCE910101HDFXXX04',
       contrasena: 'docente2234',
@@ -80,10 +80,10 @@ async function seedUsers() {
       apellidoMaterno: 'Santos',
       telefono: '951-000-0004',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
 
-    // DOCENTE 3 ✅ NUEVO
+    // DOCENTE 3
     {
       curp: 'DOCE920101HDFXXX05',
       contrasena: 'docente3234',
@@ -94,7 +94,7 @@ async function seedUsers() {
       apellidoMaterno: 'Ruiz',
       telefono: '951-000-0005',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
 
     // ALUMNO
@@ -108,7 +108,7 @@ async function seedUsers() {
       apellidoMaterno: 'Demo',
       telefono: '951-000-0006',
       estaActivo: true,
-      debeCambiarContrasena: true,
+      debeCambiarContrasena: false,
     },
   ];
 
@@ -123,7 +123,9 @@ async function seedUsers() {
       const user = await usersService.create(userData);
 
       console.log(`✅ Usuario creado: ${user.curp} (${user.rol})`);
-      console.log(`   Nombre: ${user.nombre} ${user.apellidoPaterno} ${user.apellidoMaterno || ''}`);
+      console.log(
+        `   Nombre: ${user.nombre} ${user.apellidoPaterno} ${user.apellidoMaterno || ''}`,
+      );
       console.log(`   Correo: ${user.correo}`);
       console.log(`   Contraseña inicial: ${userData.contrasena}`);
       console.log('');
@@ -135,7 +137,10 @@ async function seedUsers() {
         console.log('');
         existing++;
       } else {
-        console.error(`❌ Error al crear usuario ${userData.curp}:`, error.message);
+        console.error(
+          `❌ Error al crear usuario ${userData.curp}:`,
+          error.message,
+        );
         console.log('');
       }
     }

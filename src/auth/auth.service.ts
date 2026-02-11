@@ -42,30 +42,68 @@ export class AuthService {
    * @throws UnauthorizedException si las credenciales son inválidas
    */
   async login(loginDto: LoginDto): Promise<LoginResponse> {
+    console.log('');
+    console.log('===========================================');
+    console.log('🔐 AUTH SERVICE - Login iniciado');
+    console.log('CURP recibido:', loginDto.curp);
+    console.log('Contraseña recibida:', loginDto.contrasena ? 'SÍ' : 'NO');
+    console.log('===========================================');
+
     // Buscar usuario por CURP (incluyendo contraseña)
     let user: User;
     try {
+      console.log('📍 Buscando usuario en BD...');
       user = await this.usersService.findByCurp(loginDto.curp, true);
+      console.log('✅ Usuario encontrado:', user ? 'SÍ' : 'NO');
+      
+      if (user) {
+        console.log('👤 Usuario ID:', user.id);
+        console.log('👤 Usuario nombre:', user.nombre);
+        console.log('👤 Usuario rol:', user.rol);
+        console.log('👤 Usuario activo:', user.estaActivo);
+        console.log('🔒 Hash de contraseña existe:', user.contrasena ? 'SÍ' : 'NO');
+        
+        if (user.contrasena) {
+          console.log('🔒 Hash (primeros 30 caracteres):', user.contrasena.substring(0, 30) + '...');
+        }
+      }
     } catch (error) {
+      console.error('❌ Error al buscar usuario:', error.message);
+      console.log('===========================================');
+      console.log('');
       throw new UnauthorizedException('CURP o contraseña incorrectos');
     }
 
     // Verificar que el usuario esté activo
     if (!user.estaActivo) {
+      console.log('❌ Usuario inactivo');
+      console.log('===========================================');
+      console.log('');
       throw new UnauthorizedException(
         'Tu cuenta ha sido desactivada. Contacta al administrador.',
       );
     }
 
     // Validar la contraseña
+    console.log('🔐 Validando contraseña...');
+    console.log('Contraseña ingresada:', loginDto.contrasena);
+    console.log('Hash almacenado (primeros 30):', user.contrasena.substring(0, 30) + '...');
+    
     const contrasenaValida = await user.validatePassword(loginDto.contrasena);
+    console.log('✅ Contraseña válida:', contrasenaValida ? 'SÍ ✅' : 'NO ❌');
 
     if (!contrasenaValida) {
+      console.log('❌ Contraseña incorrecta - Login rechazado');
+      console.log('===========================================');
+      console.log('');
       throw new UnauthorizedException('CURP o contraseña incorrectos');
     }
 
+    console.log('✅ Autenticación exitosa');
+
     // Actualizar fecha de último acceso
     await this.usersService.updateLastAccess(user.id);
+    console.log('📅 Fecha de último acceso actualizada');
 
     // Generar token JWT
     const payload: JwtPayload = {
@@ -75,9 +113,15 @@ export class AuthService {
     };
 
     const access_token = this.jwtService.sign(payload);
+    console.log('🎫 Token JWT generado');
+    console.log('Token (primeros 50 caracteres):', access_token.substring(0, 50) + '...');
 
     // Preparar respuesta (sin contraseña)
     delete user.contrasena;
+
+    console.log('📤 Enviando respuesta al frontend');
+    console.log('===========================================');
+    console.log('');
 
     return {
       access_token,

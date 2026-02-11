@@ -1,4 +1,13 @@
-import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, OneToOne, OneToMany, BeforeInsert, BeforeUpdate,} from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../../common/enums/role.enum';
@@ -25,7 +34,10 @@ export class User {
   id: number;
 
   /**
-    
+   * CURP del usuario
+   * Clave Única de Registro de Población
+   * Se usa como username para el login
+   * 
    * @unique
    * @length 18
    */
@@ -40,7 +52,7 @@ export class User {
    * @hashed bcrypt con 10 rounds
    * @exclude en respuestas JSON
    */
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false, select: false })
   @Exclude()
   contrasena: string;
 
@@ -109,11 +121,21 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: true })
   telefono: string;
 
- 
+  /**
+   * Estado del usuario
+   * Indica si el usuario está activo o ha sido dado de baja
+   * Los usuarios inactivos no pueden iniciar sesión
+   */
   @Column({ type: 'boolean', default: true, name: 'esta_activo' })
   estaActivo: boolean;
 
-
+  /**
+   * Flag que indica si el usuario debe cambiar su contraseña
+   * Se establece en true cuando:
+   * - El usuario es creado por primera vez
+   * - Un administrador resetea la contraseña
+   * - Por políticas de seguridad (contraseña expirada)
+   */
   @Column({
     type: 'boolean',
     default: true,
@@ -144,13 +166,21 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp', name: 'fecha_actualizacion' })
   fechaActualizacion: Date;
 
+  /**
+   * Hook que se ejecuta antes de insertar o actualizar
+   * Hashea la contraseña con bcrypt si fue modificada
+   * Solo hashea si la contraseña es texto plano (no empieza con $2b$)
+   */
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
     // Solo hashear si la contraseña fue modificada y no está hasheada
     if (this.contrasena && !this.contrasena.startsWith('$2b$')) {
+      console.log('🔐 Hasheando contraseña con bcrypt...');
       const salt = await bcrypt.genSalt(10);
       this.contrasena = await bcrypt.hash(this.contrasena, salt);
+      console.log('✅ Contraseña hasheada correctamente');
+      console.log('Hash generado (primeros 30 caracteres):', this.contrasena.substring(0, 30) + '...');
     }
   }
 
@@ -162,7 +192,14 @@ export class User {
    * @returns true si la contraseña es correcta, false en caso contrario
    */
   async validatePassword(password: string): Promise<boolean> {
-    return await bcrypt.compare(password, this.contrasena);
+    console.log('🔐 User.validatePassword()');
+    console.log('Contraseña ingresada:', password);
+    console.log('Hash almacenado (primeros 30):', this.contrasena.substring(0, 30) + '...');
+    
+    const isValid = await bcrypt.compare(password, this.contrasena);
+    console.log('Resultado de bcrypt.compare:', isValid ? 'VÁLIDA ✅' : 'INVÁLIDA ❌');
+    
+    return isValid;
   }
 
   /**
