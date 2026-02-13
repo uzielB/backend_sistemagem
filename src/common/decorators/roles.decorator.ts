@@ -1,36 +1,32 @@
 import { SetMetadata } from '@nestjs/common';
 import { UserRole } from '../enums/role.enum';
-import { ROLES_KEY } from '../guards/roles.guard';
+
+export const ROLES_KEY = 'roles';
 
 /**
- * Decorador @Roles()
+ * Decorator de Roles
  * 
- * Define qué roles tienen permiso para acceder a un endpoint
- * Debe usarse junto con RolesGuard
+ * Define qué roles pueden acceder a una ruta específica
+ * Debe usarse en conjunto con RolesGuard
  * 
- * @param roles - Lista de roles permitidos
- * 
- * Ejemplos de uso:
- * 
+ * Ejemplos:
  * ```typescript
- * // Solo SUPER_ADMIN puede acceder
- * @Roles(UserRole.SUPER_ADMIN)
- * @Delete(':id')
- * async delete(@Param('id') id: number) { }
+ * // Permitir solo DOCENTE
+ * @Roles(UserRole.DOCENTE)
+ * @Get('horarios')
+ * async getSchedule() { ... }
  * 
- * // SUPER_ADMIN o ADMIN pueden acceder
+ * // Permitir SUPER_ADMIN o ADMIN
  * @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
- * @Get()
- * async list() { }
+ * @Get('admin/users')
+ * async getUsers() { ... }
  * 
- * // Cualquier usuario autenticado (no especificar roles)
- * @Get('profile')
- * async profile() { }
- * 
- * // A nivel de clase (aplica a todos los métodos)
- * @Controller('admin')
+ * // Permitir todos los roles administrativos
  * @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
- * export class AdminController { }
+ * @Post('admin/create')
+ * async create() { ... }
  * ```
+ * 
+ * @param roles - Roles permitidos para acceder a la ruta
  */
 export const Roles = (...roles: UserRole[]) => SetMetadata(ROLES_KEY, roles);
