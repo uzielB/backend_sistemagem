@@ -9,21 +9,18 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // Obtener los roles requeridos del decorador @Roles()
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
       ROLES_KEY,
       [
-        context.getHandler(), // Nivel de método
-        context.getClass(), // Nivel de clase
+        context.getHandler(), 
+        context.getClass(),
       ],
     );
 
-    // Si no hay roles especificados, permitir acceso
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
-    // Obtener el usuario de la request (viene de JwtAuthGuard)
     const { user } = context.switchToHttp().getRequest();
 
     // Verificar que el usuario existe
