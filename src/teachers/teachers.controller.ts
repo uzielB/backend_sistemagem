@@ -1,266 +1,181 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
-import { TeachersService } from './teachers.service';
-import { CreateTeacherDto } from './dto/create-teacher.dto';
-import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/role.enum';
+import { TeachersService } from './teachers.service';
+import {
+  TeacherScheduleResponseDto,
+  StudentListResponseDto,
+  GetTeacherStudentsDto,
+  MyAssignmentsResponseDto,
+  SaveGradeDto,
+  SaveBulkGradesDto,
+  GradeResponseDto,
+  GetGradesDto,
+  SaveAttendanceDto,
+  SaveBulkAttendancesDto,
+  AttendanceResponseDto,
+  GetAttendancesDto,
+  AttendancePercentageDto,
+} from './dto/teachers.dto';
 
-/**
- * Controlador de Teachers (Docentes)
- * Rutas protegidas con autenticación JWT y control de roles
- * 
- * Rutas base: /api/teachers
- */
 @Controller('teachers')
-@UseGuards(JwtAuthGuard, RolesGuard) 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.DOCENTE)
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
-  /**
-   * POST /api/teachers
-   * Crea un nuevo perfil de docente
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Post()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  // ==================== HORARIOS Y LISTAS ====================
+
+  @Get('horarios')
+  async getSchedule(@Request() req): Promise<TeacherScheduleResponseDto[]> {
+    const usuarioId = req.user.id;
+    return this.teachersService.getTeacherSchedule(usuarioId);
+  }
+
+  @Get('mis-asignaciones')
+  async getMyAssignments(@Request() req): Promise<MyAssignmentsResponseDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.getMyAssignments(usuarioId);
+  }
+
+  @Get('alumnos')
+  async getStudents(
+    @Request() req,
+    @Query() query: GetTeacherStudentsDto,
+  ): Promise<StudentListResponseDto[]> {
+    const usuarioId = req.user.id;
+    return this.teachersService.getTeacherStudents(usuarioId, query);
+  }
+
+  // ==================== CALIFICACIONES ====================
+
+  @Post('calificaciones')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createTeacherDto: CreateTeacherDto) {
-    const teacher = await this.teachersService.create(createTeacherDto);
-
-    return {
-      message: 'Docente creado exitosamente',
-      data: teacher,
-    };
+  async saveGrade(
+    @Request() req,
+    @Body() dto: SaveGradeDto,
+  ): Promise<GradeResponseDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.saveGrade(usuarioId, dto);
   }
 
-  /**
-   * GET /api/teachers
-   * Obtiene todos los docentes
-   * Query param opcional: ?activeOnly=true
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Get()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async findAll(@Query('activeOnly') activeOnly?: string) {
-    const onlyActive = activeOnly === 'true';
-    const teachers = await this.teachersService.findAll(onlyActive);
-
-    return {
-      message: 'Docentes obtenidos exitosamente',
-      data: teachers,
-      count: teachers.length,
-    };
+  @Post('calificaciones/masivas')
+  @HttpCode(HttpStatus.CREATED)
+  async saveBulkGrades(
+    @Request() req,
+    @Body() dto: SaveBulkGradesDto,
+  ): Promise<{ guardadas: number; calificaciones: GradeResponseDto[] }> {
+    const usuarioId = req.user.id;
+    return this.teachersService.saveBulkGrades(usuarioId, dto);
   }
 
-  /**
-   * GET /api/teachers/statistics
-   * Obtiene estadísticas de docentes
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Get('statistics')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async getStatistics() {
-    const statistics = await this.teachersService.getStatistics();
-
-    return {
-      message: 'Estadísticas obtenidas exitosamente',
-      data: statistics,
-    };
+  @Get('calificaciones')
+  async getGrades(
+    @Request() req,
+    @Query() query: GetGradesDto,
+  ): Promise<GradeResponseDto[]> {
+    const usuarioId = req.user.id;
+    return this.teachersService.getGrades(usuarioId, query);
   }
 
-  /**
-   * GET /api/teachers/incomplete-profiles
-   * Obtiene docentes con perfiles incompletos
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Get('incomplete-profiles')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async getIncompleteProfiles() {
-    const teachers = await this.teachersService.findIncompleteProfiles();
-
-    return {
-      message: 'Docentes con perfiles incompletos obtenidos exitosamente',
-      data: teachers,
-      count: teachers.length,
-    };
-  }
-
-  /**
-   * GET /api/teachers/by-user/:usuarioId
-   * Busca un docente por el ID de su usuario
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Get('by-user/:usuarioId')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async findByUserId(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
-    const teacher = await this.teachersService.findByUserId(usuarioId);
-
-    return {
-      message: 'Docente encontrado',
-      data: teacher,
-    };
-  }
-
-  /**
-   * GET /api/teachers/by-empleado/:numeroEmpleado
-   * Busca un docente por su número de empleado
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Get('by-empleado/:numeroEmpleado')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async findByNumeroEmpleado(@Param('numeroEmpleado') numeroEmpleado: string) {
-    const teacher = await this.teachersService.findByNumeroEmpleado(numeroEmpleado);
-
-    return {
-      message: 'Docente encontrado',
-      data: teacher,
-    };
-  }
-
-  /**
-   * GET /api/teachers/:id
-   * Obtiene un docente por su ID
-   * 
-   * Requiere autenticación (cualquier rol autenticado)
-   */
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.findOne(id);
-
-    return {
-      message: 'Docente encontrado',
-      data: teacher,
-    };
-  }
-
-  /**
-   * PATCH /api/teachers/:id
-   * Actualiza los datos de un docente
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Patch(':id')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async update(
+  @Put('calificaciones/:id')
+  async updateGrade(
+    @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateTeacherDto: UpdateTeacherDto,
-  ) {
-    const teacher = await this.teachersService.update(id, updateTeacherDto);
-
-    return {
-      message: 'Docente actualizado exitosamente',
-      data: teacher,
-    };
+    @Body() dto: Partial<SaveGradeDto>,
+  ): Promise<GradeResponseDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.updateGrade(usuarioId, id, dto);
   }
 
-  /**
-   * PATCH /api/teachers/:id/mark-formulario-completo
-   * Marca el formulario de disponibilidad como completado
-   * 
-   * Requiere rol: SUPER_ADMIN, ADMIN o DOCENTE (el mismo docente)
-   */
-  @Patch(':id/mark-formulario-completo')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCENTE)
-  async markFormularioCompleto(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.markFormularioCompleto(id);
-
-    return {
-      message: 'Formulario marcado como completado',
-      data: teacher,
-    };
+  @Delete('calificaciones/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteGrade(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    const usuarioId = req.user.id;
+    await this.teachersService.deleteGrade(usuarioId, id);
   }
 
-  /**
-   * PATCH /api/teachers/:id/mark-documentos-completos
-   * Marca los documentos como completos
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Patch(':id/mark-documentos-completos')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async markDocumentosCompletos(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.markDocumentosCompletos(id);
+  // ==================== ASISTENCIAS ====================
 
-    return {
-      message: 'Documentos marcados como completos',
-      data: teacher,
-    };
+  @Post('asistencias')
+  @HttpCode(HttpStatus.CREATED)
+  async saveAttendance(
+    @Request() req,
+    @Body() dto: SaveAttendanceDto,
+  ): Promise<AttendanceResponseDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.saveAttendance(usuarioId, dto);
   }
 
-  /**
-   * PATCH /api/teachers/:id/mark-datos-bancarios-completos
-   * Marca los datos bancarios como proporcionados
-   * 
-   * Requiere rol: SUPER_ADMIN o ADMIN
-   */
-  @Patch(':id/mark-datos-bancarios-completos')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async markDatosBancariosCompletos(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.markDatosBancariosCompletos(id);
-
-    return {
-      message: 'Datos bancarios marcados como proporcionados',
-      data: teacher,
-    };
+  @Post('asistencias/masivas')
+  @HttpCode(HttpStatus.CREATED)
+  async saveBulkAttendances(
+    @Request() req,
+    @Body() dto: SaveBulkAttendancesDto,
+  ): Promise<{ registradas: number; asistencias: AttendanceResponseDto[] }> {
+    const usuarioId = req.user.id;
+    return this.teachersService.saveBulkAttendances(usuarioId, dto);
   }
 
-  /**
-   * PATCH /api/teachers/:id/deactivate
-   * Desactiva un docente (baja lógica)
-   * 
-   * Requiere rol: SUPER_ADMIN
-   */
-  @Patch(':id/deactivate')
-  @Roles(UserRole.SUPER_ADMIN)
-  async deactivate(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.deactivate(id);
-
-    return {
-      message: 'Docente desactivado exitosamente',
-      data: teacher,
-    };
+  @Get('asistencias')
+  async getAttendances(
+    @Request() req,
+    @Query() query: GetAttendancesDto,
+  ): Promise<AttendanceResponseDto[]> {
+    const usuarioId = req.user.id;
+    return this.teachersService.getAttendances(usuarioId, query);
   }
 
-  /**
-   * PATCH /api/teachers/:id/activate
-   * Reactiva un docente previamente desactivado
-   * 
-   * Requiere rol: SUPER_ADMIN
-   */
-  @Patch(':id/activate')
-  @Roles(UserRole.SUPER_ADMIN)
-  async activate(@Param('id', ParseIntPipe) id: number) {
-    const teacher = await this.teachersService.activate(id);
-
-    return {
-      message: 'Docente reactivado exitosamente',
-      data: teacher,
-    };
+  @Put('asistencias/:id')
+  async updateAttendance(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: Partial<SaveAttendanceDto>,
+  ): Promise<AttendanceResponseDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.updateAttendance(usuarioId, id, dto);
   }
 
-  /**
-   * DELETE /api/teachers/:id
-   * Elimina permanentemente un docente (baja física)
-   * 
-   * Requiere rol: SUPER_ADMIN
-   * PRECAUCIÓN: Esta operación no se puede deshacer
-   */
-  @Delete(':id')
-  @Roles(UserRole.SUPER_ADMIN)
-  @HttpCode(HttpStatus.OK)
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    await this.teachersService.remove(id);
+  @Delete('asistencias/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAttendance(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    const usuarioId = req.user.id;
+    await this.teachersService.deleteAttendance(usuarioId, id);
+  }
 
-    return {
-      message: 'Docente eliminado permanentemente',
-    };
+  @Get('asistencias/porcentaje/:estudianteId/:asignacionId')
+  async getAttendancePercentage(
+    @Request() req,
+    @Param('estudianteId', ParseIntPipe) estudianteId: number,
+    @Param('asignacionId', ParseIntPipe) asignacionId: number,
+  ): Promise<AttendancePercentageDto> {
+    const usuarioId = req.user.id;
+    return this.teachersService.calculateAttendancePercentage(
+      usuarioId,
+      estudianteId,
+      asignacionId,
+    );
   }
 }
