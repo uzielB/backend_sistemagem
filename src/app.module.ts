@@ -14,6 +14,8 @@ import { TeacherAvailabilityModule } from './teacher-availability/teacher-availa
 import { TeacherBankInfoModule } from './teacher-bank-info/teacher-bank-info.module';
 import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.module';
 import { SyllabusesModule } from './syllabuses/syllabuses.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+
 @Module({
   imports: [
 
@@ -39,19 +41,8 @@ import { SyllabusesModule } from './syllabuses/syllabuses.module';
     TeacherAvailabilityModule,
     TeacherBankInfoModule,
     TeacherDocumentsModule,
-    SyllabusesModule
-    // TODO: Agregar más módulos según se vayan creando:
-    // StudentsModule,
-    // SubjectsModule,
-    // PeriodsModule,
-    // GroupsModule,
-    // AssignmentsModule,
-    // GradesModule,
-    // AttendanceModule,
-    // FinanceModule,
-    // PreEnrollmentModule,
-    // NotificationsModule,
-    // AuditModule,
+    SyllabusesModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
