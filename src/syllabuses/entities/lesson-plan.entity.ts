@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne,  JoinColumn, CreateD
 import { Syllabus } from './sallybus.entity';
 import { Teacher } from '../../teachers/entities/teacher.entity';
 import { User } from '../../users/entities/user.entity';
+import { TeacherAssignment } from 'src/teachers/entities/teacher-assignment.entity';
 
 export enum LessonPlanStatus {
   PENDING_REVIEW = 'PENDIENTE_REVISION',
@@ -88,6 +89,12 @@ export class LessonPlan {
   // RELACIONES
   // ============================================
 
+  
+  @ManyToOne(() => TeacherAssignment)
+  @JoinColumn({ name: 'asignacion_id' })
+  assignment: TeacherAssignment;
+  
+
   /**
    * Relación con Syllabus (temario base)
    * Una planeación está basada en un temario
@@ -120,14 +127,5 @@ export class LessonPlan {
   @JoinColumn({ name: 'planeacion_anterior_id' })
   previousVersion: LessonPlan;
 
-  // ============================================
-  // NOTA: Relación con TeacherAssignment
-  // ============================================
-  // Si tienes esta entidad creada, descomenta y ajusta:
-  
-  /*
-  @ManyToOne(() => TeacherAssignment)
-  @JoinColumn({ name: 'asignacion_id' })
-  assignment: TeacherAssignment;
-  */
+
 }

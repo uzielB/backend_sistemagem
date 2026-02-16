@@ -13,17 +13,16 @@ import { SchoolPeriodsModule } from './school-periods/school-periods.module';
 import { TeacherAvailabilityModule } from './teacher-availability/teacher-availability.module';
 import { TeacherBankInfoModule } from './teacher-bank-info/teacher-bank-info.module';
 import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.module';
+import { SyllabusesModule } from './syllabuses/syllabuses.module';
 @Module({
   imports: [
-    // ✅ Configuración de variables de entorno (.env)
-    // isGlobal: true hace que esté disponible en toda la app
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
 
-    // ✅ Configuración de TypeORM usando variables de entorno
-    // Lee las credenciales del archivo .env
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -31,7 +30,6 @@ import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.mo
         getDatabaseConfig(configService),
     }),
 
-    // Módulos de la aplicación
     AuthModule,
     UsersModule,
     TeachersModule,
@@ -41,6 +39,7 @@ import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.mo
     TeacherAvailabilityModule,
     TeacherBankInfoModule,
     TeacherDocumentsModule,
+    SyllabusesModule
     // TODO: Agregar más módulos según se vayan creando:
     // StudentsModule,
     // SubjectsModule,
@@ -54,7 +53,7 @@ import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.mo
     // NotificationsModule,
     // AuditModule,
   ],
-  controllers: [AppController], // Mantener si los tienes
-  providers: [AppService], // Mantener si los tienes
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

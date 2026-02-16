@@ -92,67 +92,81 @@ export class TeachersService {
     return schedule;
   }
 
-  async getMyAssignments(usuarioId: number): Promise<MyAssignmentsResponseDto> {
-    const teacher = await this.getTeacherByUserId(usuarioId);
 
-    const assignments = await this.assignmentRepository.find({
-      where: { docenteId: teacher.id, estaActivo: true },
-      relations: [
-        'materia',
-        'grupo',
-        'grupo.programa',
-        'moduloHorario',
-        'periodoEscolar',
-      ],
-    });
 
-    const assignmentsDto: TeacherAssignmentResponseDto[] = assignments.map((assignment) => ({
-      id: assignment.id,
-      sistema: assignment.moduloHorario?.sistema || 'N/A',
-      grupo: assignment.grupo.nombre,
-      materia: assignment.materia.nombre,
-      aula: assignment.aula || 'Por asignar',
-      moduloHorario: assignment.moduloHorario ? {
-        numeroModulo: assignment.moduloHorario.numeroModulo,
-        horaInicio: assignment.moduloHorario.horaInicio,
-        horaFin: assignment.moduloHorario.horaFin,
-        diasSemana: assignment.moduloHorario.diasSemana,
-      } : null,
-      programa: assignment.grupo.programa ? {
-        id: assignment.grupo.programa.id,
-        nombre: assignment.grupo.programa.nombre,
-        codigo: assignment.grupo.programa.codigo,
-      } : null,
-      periodoEscolar: assignment.periodoEscolar ? {
-        id: assignment.periodoEscolar.id,
-        nombre: assignment.periodoEscolar.nombre,
-        codigo: assignment.periodoEscolar.codigo,
-      } : null,
-    }));
+async getMyAssignments(usuarioId: number): Promise<MyAssignmentsResponseDto> {
+  const teacher = await this.getTeacherByUserId(usuarioId);
 
-    const uniqueGroups = new Set(assignments.map(a => a.grupoId));
-    const totalHours = assignments.reduce((total, assignment) => {
-      if (assignment.moduloHorario) {
-        const start = this.parseTime(assignment.moduloHorario.horaInicio);
-        const end = this.parseTime(assignment.moduloHorario.horaFin);
-        return total + (end - start) / 60;
-      }
-      return total;
-    }, 0);
+  const assignments = await this.assignmentRepository.find({
+    where: { docenteId: teacher.id, estaActivo: true },
+    relations: [
+      'materia',
+      'grupo',
+      'grupo.programa',
+      'moduloHorario',
+      'periodoEscolar',
+    ],
+  });
 
-    const groupIds = Array.from(uniqueGroups);
-    const totalStudents = await this.studentRepository.count({
-      where: groupIds.map(id => ({ grupoId: id, estaActivo: true })),
-    });
+  const assignmentsDto: TeacherAssignmentResponseDto[] = assignments.map((assignment) => ({
+    id: assignment.id,
+    sistema: assignment.moduloHorario?.sistema || 'N/A',
+    grupo: assignment.grupo.nombre,
+    materia: assignment.materia.nombre,
+    aula: assignment.aula || 'Por asignar',
+    
+    // ✅ CAMPOS PLANOS DEL MÓDULO HORARIO (para Schedule frontend)
+    moduloNumero: assignment.moduloHorario?.numeroModulo,
+    moduloHoraInicio: assignment.moduloHorario?.horaInicio,
+    moduloHoraFin: assignment.moduloHorario?.horaFin,
+    moduloSistema: assignment.moduloHorario?.sistema,
+    moduloDiasSemana: assignment.moduloHorario?.diasSemana,
+    
+    // Objeto anidado (mantener para compatibilidad)
+    moduloHorario: assignment.moduloHorario ? {
+      numeroModulo: assignment.moduloHorario.numeroModulo,
+      horaInicio: assignment.moduloHorario.horaInicio,
+      horaFin: assignment.moduloHorario.horaFin,
+      diasSemana: assignment.moduloHorario.diasSemana,
+    } : null,
+    
+    programa: assignment.grupo.programa ? {
+      id: assignment.grupo.programa.id,
+      nombre: assignment.grupo.programa.nombre,
+      codigo: assignment.grupo.programa.codigo,
+    } : null,
+    
+    periodoEscolar: assignment.periodoEscolar ? {
+      id: assignment.periodoEscolar.id,
+      nombre: assignment.periodoEscolar.nombre,
+      codigo: assignment.periodoEscolar.codigo,
+    } : null,
+  }));
 
-    return {
-      asignaciones: assignmentsDto,
-      totalAsignaciones: assignments.length,
-      totalGrupos: uniqueGroups.size,
-      totalAlumnos: totalStudents,
-      totalHorasSemanales: totalHours,
-    };
-  }
+  const uniqueGroups = new Set(assignments.map(a => a.grupoId));
+  const totalHours = assignments.reduce((total, assignment) => {
+    if (assignment.moduloHorario) {
+      const start = this.parseTime(assignment.moduloHorario.horaInicio);
+      const end = this.parseTime(assignment.moduloHorario.horaFin);
+      return total + (end - start) / 60;
+    }
+    return total;
+  }, 0);
+
+  const groupIds = Array.from(uniqueGroups);
+  const totalStudents = await this.studentRepository.count({
+    where: groupIds.map(id => ({ grupoId: id, estaActivo: true })),
+  });
+
+  return {
+    asignaciones: assignmentsDto,
+    totalAsignaciones: assignments.length,
+    totalGrupos: uniqueGroups.size,
+    totalAlumnos: totalStudents,
+    totalHorasSemanales: totalHours,
+  };
+}
+
 
   async getTeacherStudents(
     usuarioId: number,
