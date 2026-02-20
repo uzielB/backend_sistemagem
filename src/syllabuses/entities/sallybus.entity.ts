@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { LessonPlan } from './lesson-plan.entity';
+import { Subject } from '../../teachers/entities/subject.entity';
 
 @Entity('temarios')
 export class Syllabus {
@@ -76,7 +77,10 @@ export class Syllabus {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'subido_por' })
   uploadedBy: User;
-
+  
+  @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'materia_id' })
+  subject: Subject;
   /**
    * Relación con LessonPlan (planeaciones basadas en este temario)
    * Un temario puede tener muchas planeaciones
@@ -90,10 +94,7 @@ export class Syllabus {
   // Si tienes estas entidades creadas, descomenta y ajusta:
   
   /*
-  @ManyToOne(() => Subject)
-  @JoinColumn({ name: 'materia_id' })
-  subject: Subject;
-
+  
   @ManyToOne(() => SchoolPeriod)
   @JoinColumn({ name: 'periodo_escolar_id' })
   schoolPeriod: SchoolPeriod;
