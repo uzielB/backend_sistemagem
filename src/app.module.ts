@@ -19,6 +19,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { FinanzasModule } from './finanzas/finanzas.module';
 import { AdminEstudiantesModule } from './admin-estudiantes/admin-estudiantes.module';  // ← AGREGAR
 
+import { AdminProgramsModule } from './admin-programs/admin-programs.module-masivas';
+
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { AdminEstudiantesModule } from './admin-estudiantes/admin-estudiantes.mo
     DashboardModule,
     FinanzasModule,
     AdminEstudiantesModule,
+    AdminProgramsModule
   ],
   controllers: [AppController],
   providers: [AppService],

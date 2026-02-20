@@ -90,25 +90,26 @@ export class SyllabusesService {
   /**
    * Obtener temarios de las materias asignadas a un docente
    */
-  async findSyllabusesForTeacher(teacherId: number): Promise<Syllabus[]> {
-    // Query para obtener temarios de las materias del docente
-    const syllabuses = await this.syllabusRepository
-      .createQueryBuilder('syllabus')
-      .leftJoinAndSelect('syllabus.uploadedBy', 'uploader')
-      .where('syllabus.estaActivo = :activo', { activo: true })
-      .andWhere(`
-        syllabus.materiaId IN (
-          SELECT DISTINCT materia_id 
-          FROM asignaciones_docentes 
-          WHERE docente_id = :teacherId 
-          AND esta_activo = true
-        )
-      `, { teacherId })
-      .orderBy('syllabus.fechaSubida', 'DESC')
-      .getMany();
+async findSyllabusesForTeacher(teacherId: number): Promise<Syllabus[]> {
+  const syllabuses = await this.syllabusRepository
+    .createQueryBuilder('syllabus')
+    .leftJoinAndSelect('syllabus.uploadedBy', 'uploader')
+    .leftJoinAndSelect('syllabus.subject', 'subject')      
+    .leftJoinAndSelect('subject.programa', 'programa')     
+    .where('syllabus.estaActivo = :activo', { activo: true })
+    .andWhere(`
+      syllabus.materiaId IN (
+        SELECT DISTINCT materia_id 
+        FROM asignaciones_docentes 
+        WHERE docente_id = :teacherId 
+        AND esta_activo = true
+      )
+    `, { teacherId })
+    .orderBy('syllabus.fechaSubida', 'DESC')
+    .getMany();
 
-    return syllabuses;
-  }
+  return syllabuses;
+}
 
   /**
    * Eliminar temario (soft delete)
@@ -246,6 +247,31 @@ export class SyllabusesService {
 
     return this.lessonPlanRepository.save(lessonPlan);
   }
+
+
+async getSyllabusesByMateria(
+  materiaId: number,
+  periodoEscolarId?: number,
+): Promise<Syllabus[]> {
+  const where: any = {
+    materiaId,
+    estaActivo: true,
+  };
+
+  if (periodoEscolarId) {
+    where.periodoEscolarId = periodoEscolarId;
+  }
+
+  const syllabuses = await this.syllabusRepository.find({
+    where,
+    relations: ['subject', 'subject.programa', 'uploadedBy'],
+    order: {
+      fechaSubida: 'DESC',  // ✅ SOLO ESTO
+    },
+  });
+
+  return syllabuses;
+}
 
   // ============================================
   // ARCHIVOS (Descarga)
