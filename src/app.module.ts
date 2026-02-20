@@ -15,6 +15,8 @@ import { TeacherBankInfoModule } from './teacher-bank-info/teacher-bank-info.mod
 import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.module';
 import { SyllabusesModule } from './syllabuses/syllabuses.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminProgramsModule } from './admin-programs/admin-programs.module-masivas';
+
 
 @Module({
   imports: [
@@ -43,6 +45,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TeacherDocumentsModule,
     SyllabusesModule,
     DashboardModule,
+    AdminProgramsModule
   ],
   controllers: [AppController],
   providers: [AppService],
