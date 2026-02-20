@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -15,6 +16,9 @@ import { TeacherBankInfoModule } from './teacher-bank-info/teacher-bank-info.mod
 import { TeacherDocumentsModule } from './teacher-documents/teacher-documents.module';
 import { SyllabusesModule } from './syllabuses/syllabuses.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FinanzasModule } from './finanzas/finanzas.module';
+import { AdminEstudiantesModule } from './admin-estudiantes/admin-estudiantes.module';  // ← AGREGAR
+
 
 @Module({
   imports: [
@@ -43,6 +47,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TeacherDocumentsModule,
     SyllabusesModule,
     DashboardModule,
+    FinanzasModule,
+    AdminEstudiantesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
