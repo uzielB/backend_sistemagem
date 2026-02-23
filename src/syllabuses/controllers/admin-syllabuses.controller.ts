@@ -11,7 +11,8 @@ import {
   Request,
   Res,
   ParseIntPipe,
-  HttpStatus
+  HttpStatus,
+  Query
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -28,7 +29,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from '
 
 @ApiTags('Admin - Syllabuses')
 @ApiBearerAuth()
-@Controller('api/admin/syllabuses')
+@Controller('/admin/syllabuses')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 export class AdminSyllabusesController {
@@ -198,4 +199,15 @@ export class AdminSyllabusesController {
   async getLessonPlanStats() {
     return this.syllabusesService.getLessonPlanStats();
   }
+
+
+@Get('materia/:materiaId')
+async getSyllabusesByMateria(
+  @Param('materiaId', ParseIntPipe) materiaId: number,
+  @Query('periodoEscolarId') periodoEscolarId?: string,
+) {
+  const periodoId = periodoEscolarId ? parseInt(periodoEscolarId) : undefined;
+  return this.syllabusesService.getSyllabusesByMateria(materiaId, periodoId);
+}
+
 }
