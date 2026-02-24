@@ -3,14 +3,27 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 /**
  * Función de arranque de la aplicación
  * Sistema Académico GEM
  */
-async function bootstrap() {
+  async function bootstrap() {
   // Crear la aplicación NestJS
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);  // ✅ MODIFICADO
+  
+  // ✅ AGREGAR: Servir archivos estáticos
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+// Habilitar CORS
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    credentials: true,
+  });
 
   // Obtener el servicio de configuración
   const configService = app.get(ConfigService);

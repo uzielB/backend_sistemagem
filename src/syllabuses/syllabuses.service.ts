@@ -248,7 +248,9 @@ async findSyllabusesForTeacher(teacherId: number): Promise<Syllabus[]> {
     return this.lessonPlanRepository.save(lessonPlan);
   }
 
-
+/**
+ * Obtener temarios base de una materia específica
+ */
 async getSyllabusesByMateria(
   materiaId: number,
   periodoEscolarId?: number,
@@ -266,12 +268,15 @@ async getSyllabusesByMateria(
     where,
     relations: ['subject', 'subject.programa', 'uploadedBy'],
     order: {
-      fechaSubida: 'DESC',  // ✅ SOLO ESTO
+      fechaSubida: 'DESC',
     },
   });
 
   return syllabuses;
 }
+
+
+
 
   // ============================================
   // ARCHIVOS (Descarga)
